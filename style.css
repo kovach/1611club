@@ -1,0 +1,14 @@
+html, body {
+  padding: 0px;
+  margin: 0px;
+}
+canvas {
+  border: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#image0 {
+  visibility: hidden;
+}
