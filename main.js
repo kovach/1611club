@@ -1,4 +1,9 @@
-var init0 = function() {
+let image0;
+let image1;
+let canvasWidth;
+let canvasHeight;
+
+const makeCanvases = function() {
   mcanvas = document.createElement('canvas');
   mctx = mcanvas.getContext('2d');
 
@@ -15,76 +20,78 @@ var init0 = function() {
   image1.src = 'emoclew.jpg'
 }
 
-var rand = function(min, max) {
-  return Math.floor(min + Math.random() * (max - min));
-}
+const redraw = function() {
+  bctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-var rx = function(w) {
-  return w * rand(0, window.innerWidth / w);
-}
-var ry = function(w) {
-  return w * rand(0, window.innerHeight / w);
-}
-
-var w = 18;
-
-var redraw = function() {
-  var width = window.innerWidth, height = window.innerHeight;
-
-  bctx.clearRect(0, 0, width, height);
-
+  // the magic compositing sequence
   bctx.drawImage(mcanvas, 0, 0);
   bctx.globalCompositeOperation = 'source-in';
-  bctx.drawImage(image1, 0, 0, window.innerWidth, window.innerHeight);
+  bctx.drawImage(image1, 0, 0, canvasWidth, canvasHeight);
 
   bctx.globalCompositeOperation = 'destination-over';
-  bctx.drawImage(image0, 0, 0, window.innerWidth, window.innerHeight);
+  bctx.drawImage(image0, 0, 0, canvasWidth, canvasHeight);
 
   ctx.drawImage(bcanvas, 0, 0);
 }
 
-var resize = function() {
-  bcanvas.width = window.innerWidth;
-  bcanvas.height = window.innerHeight;
-  mcanvas.width = window.innerWidth;
-  mcanvas.height = window.innerHeight;
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+let cellWidth;
+
+// TODO: maybe handle window resizing after initial load. currently this function is called only once
+const setDimensions = function() {
+  canvasWidth = window.innerWidth;
+  canvasHeight = window.innerHeight;
+  bcanvas.width = canvasWidth;
+  bcanvas.height = canvasHeight;
+  mcanvas.width = canvasWidth;
+  mcanvas.height = canvasHeight;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  cellWidth = Math.sqrt(canvasWidth * canvasHeight) / 60;
+  cellWidth = Math.floor(cellWidth);
 }
 
-var update = function() {
-  var x = rx(w), y = ry(w);
-  mctx.fillRect(x, y, w, w);
+const rand = function(min, max) {
+  return Math.floor(min + Math.random() * (max - min));
+}
+const rx = function(w) {
+  return w * rand(0, window.innerWidth / w);
+}
+const ry = function(w) {
+  return w * rand(0, window.innerHeight / w);
+}
+
+// overwrites one rectangle; redraw will fill it in with the reflected image
+const tick = function() {
+  const x = rx(cellWidth), y = ry(cellWidth);
+  mctx.fillRect(x, y, cellWidth, cellWidth);
+}
+
+const mainLoop = function() {
+  tick();
   redraw();
-  console.log('update!');
+  setTimeout(mainLoop, rand(20, 150));
 }
 
-var timestep = function() {
-  update();
-  setTimeout(timestep, rand(20, 150));
-}
-
-var test = function() {
-  i = 0;
-  while (i < 150) {
-    var x = rx(w), y = ry(w);
-    mctx.fillRect(x, y, w, w);
-    i++;
+// draw a number of rectangles all at once
+const test = function() {
+  for (let i = 0; i < 550; i++) {
+    tick();
   }
   redraw();
 }
 
-var init = function() {
-  ready++;
-  if (ready > 1) {
-    resize();
-    timestep();
-    //test();
+let imagesReady = 0;
+
+const onImageLoaded = function() {
+  imagesReady++;
+  if (imagesReady > 1) {
+    setDimensions();
+    mainLoop();
+    test();
   }
 }
 
-var ready = 0;
-init0();
+makeCanvases();
 
-image0.onload = init
-image1.onload = init
+image0.onload = onImageLoaded
+image1.onload = onImageLoaded
