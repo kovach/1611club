@@ -87,7 +87,6 @@ const onImageLoaded = function() {
   if (imagesReady > 1) {
     setDimensions();
     mainLoop();
-    test();
   }
 }
 
